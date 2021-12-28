@@ -1,0 +1,41 @@
+server:
+  port: 9191
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+      - id: PRODUCT-SERVICE
+        uri: lb://PRODUCT-SERVICE
+        predicates:
+          - Path=/product/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: PRODUCT-SERVICE
+            fallbackuri: forward:/productserviceFallBack
+
+      - id: MANUFACTURER-SERVICE
+        uri: lb://MANUFACTURER-SERVICE
+        predicates:
+          - Path=/manufactuer/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: MANUFACTURER-SERVICE
+            fallbackuri: forward:/manufacturerserviceFallBack
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
